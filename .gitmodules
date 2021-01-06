@@ -1,0 +1,3 @@
+[submodule "vendor/node-harvest"]
+	path = vendor/node-harvest
+	url = https://github.com/ThisIsMissEm/node-harvest.git
