@@ -18,6 +18,50 @@ function toDateString(date) {
   )}`;
 }
 
+function getTimesheetPeriods() {
+  const date = new Date();
+  const year = date.getFullYear();
+
+  if (date.getDate() > 15) {
+    return [
+      {
+        start: new Date(year, date.getMonth(), 1),
+        end: new Date(year, date.getMonth(), 15),
+      },
+      {
+        start: new Date(year, date.getMonth(), 16),
+        end: new Date(year, date.getMonth() + 1, 0),
+      },
+    ];
+  } else {
+    return [
+      {
+        start: new Date(year, date.getMonth() - 1, 16),
+        end: new Date(year, date.getMonth(), 0),
+      },
+      {
+        start: new Date(year, date.getMonth(), 1),
+        end: new Date(year, date.getMonth(), 15),
+      },
+      {
+        start: new Date(year, date.getMonth(), 16),
+        end: new Date(year, date.getMonth() + 1, 0),
+      },
+    ];
+  }
+}
+
+function timesheetPeriodChoices() {
+  const periods = getTimesheetPeriods();
+
+  return periods.map((period) => ({
+    title: `${Intl.DateTimeFormat("en-US", { month: "long" }).format(
+      period.start
+    )} ${period.start.getDate()} to ${period.end.getDate()}`,
+    value: period,
+  }));
+}
+
 async function main() {
   // Try parsing the .env file, in order to get initial configuration values
   // It's a bit goopy because dotenv won't load values already loaded, so you
@@ -107,50 +151,6 @@ async function main() {
     },
   });
 
-  function getTimesheetPeriods() {
-    const date = new Date();
-    const year = date.getFullYear();
-
-    if (date.getDate() > 15) {
-      return [
-        {
-          start: new Date(year, date.getMonth(), 1),
-          end: new Date(year, date.getMonth(), 15),
-        },
-        {
-          start: new Date(year, date.getMonth(), 16),
-          end: new Date(year, date.getMonth() + 1, 0),
-        },
-      ];
-    } else {
-      return [
-        {
-          start: new Date(year, date.getMonth() - 1, 16),
-          end: new Date(year, date.getMonth(), 0),
-        },
-        {
-          start: new Date(year, date.getMonth(), 1),
-          end: new Date(year, date.getMonth(), 15),
-        },
-        {
-          start: new Date(year, date.getMonth(), 16),
-          end: new Date(year, date.getMonth() + 1, 0),
-        },
-      ];
-    }
-  }
-
-  function timesheetPeriodChoices() {
-    const periods = getTimesheetPeriods();
-
-    return periods.map((period) => ({
-      title: `${Intl.DateTimeFormat("en-US", { month: "long" }).format(
-        period.start
-      )} ${period.start.getDate()} to ${period.end.getDate()}`,
-      value: period,
-    }));
-  }
-
   const { period } = await prompts({
     name: "period",
     type: "select",
@@ -169,6 +169,7 @@ async function main() {
         title: client.name,
         value: client.id,
       }))
+      // Reversing because for me the client I usually want is last in my list
       .reverse(),
   });
 
