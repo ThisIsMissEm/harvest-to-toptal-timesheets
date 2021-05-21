@@ -8,11 +8,11 @@
     "name": "Emelia Smith"
   },
   "scripts": {
-    "start": "node index.js",
-    "postinstall": "cd vendor/node-harvest && npm i && npm run build"
+    "start": "node index.js"
   },
   "dependencies": {
     "dotenv": "^8.2.0",
+    "harvest": "^2.2.6",
     "prompts": "^2.4.0"
   }
 }

@@ -2,7 +2,7 @@ const pkg = require("./package.json");
 const fs = require("fs");
 const path = require("path");
 const prompts = require("prompts");
-const Harvest = require("./vendor/node-harvest/dist/index").default;
+const Harvest = require("harvest").default;
 const dotenv = require("dotenv");
 
 function pad(number) {
