@@ -62,6 +62,10 @@ function timesheetPeriodChoices() {
   }));
 }
 
+function invoiceUrl(invoiceId) {
+  return `https://${process.env.SUBDOMAIN}.harvestapp.com/invoices/${invoiceId}`;
+}
+
 async function main() {
   // Try parsing the .env file, in order to get initial configuration values
   // It's a bit goopy because dotenv won't load values already loaded, so you
@@ -241,6 +245,77 @@ async function main() {
   );
 
   console.log(`\nCSV written to ${outputFile}\n`);
+
+  const { CREATE_INVOICE } = await prompts({
+    type: "confirm",
+    name: "CREATE_INVOICE",
+    message: "Would you like to create and send an invoice?",
+    default: false,
+  });
+
+  if (CREATE_INVOICE) {
+    console.log("");
+
+    const projects = await harvest.projects.list({
+      client_id: client.id,
+      is_active: true,
+    });
+
+    if (projects.total_entries > 1) {
+      console.error(
+        "This tool currently does not support using more than 1 Project per Client"
+      );
+      process.exit(1);
+    }
+
+    const projectIds = projects.projects.map((project) => project.id);
+
+    const invoiceSubject = `Invoice for ${periodStartString} to ${periodEndString} at ${projects.projects[0].name}`;
+
+    // Invoices are issued one day after the period ends
+    const invoiceIssueDate = new Date(
+      period.end.getFullYear(),
+      period.end.getMonth(),
+      period.end.getDate() + 1
+    );
+
+    // The invoice due date is 20 days (Toptal's payment term) plus 3 days for
+    // the automatic bank transfer
+    const invoiceDueDate = new Date(
+      invoiceIssueDate.getFullYear(),
+      invoiceIssueDate.getMonth(),
+      invoiceIssueDate.getDate() + 20 + 3
+    );
+
+    console.log(
+      `Creating invoice for ${client.name}\n  subject: ${invoiceSubject}\n`
+    );
+
+    const invoice = await harvest.invoices.create({
+      client_id: client.id,
+      subject: invoiceSubject,
+      issue_date: invoiceIssueDate,
+      due_date: invoiceDueDate,
+      payment_term: "custom",
+      line_items_import: {
+        project_ids: projectIds,
+        time: {
+          summary_type: "detailed",
+          from: period.start,
+          to: period.end,
+        },
+      },
+    });
+
+    console.log(`Invoice created!`);
+
+    const invoiceEvent = await harvest.invoiceMessages.create(invoice.id, {
+      event_type: "send",
+    });
+
+    console.log("Invoice marked as sent!\n");
+    console.log(`${invoiceUrl(invoice.id)}\n`);
+  }
 
   console.log("🌈 Have a lovely day!\n");
 }
