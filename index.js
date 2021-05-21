@@ -160,9 +160,9 @@ async function main() {
 
   const clients = (await harvest.clients.list({ is_active: true })).clients;
 
-  const { client } = await prompts({
+  const { clientId } = await prompts({
     type: "select",
-    name: "client",
+    name: "clientId",
     message: "Please select which client to download data for:",
     choices: clients
       .map((client) => ({
@@ -173,10 +173,15 @@ async function main() {
       .reverse(),
   });
 
+  const client = clients.find((c) => c.id === clientId);
+
+  const periodStartString = toDateString(period.start);
+  const periodEndString = toDateString(period.end);
+
   const entries = await harvest.timeEntries.list({
-    client_id: client,
-    from: toDateString(period.start),
-    to: toDateString(period.end),
+    client_id: clientId,
+    from: periodStartString,
+    to: periodEndString,
   });
 
   if (entries.total_pages > 1) {
@@ -222,7 +227,7 @@ async function main() {
 
   const outputFile = path.join(
     process.env.OUTPUT_FOLDER,
-    `timesheet-${client}-${toDateString(period.end)}.csv`
+    `timesheet-${clientId}-${periodEndString}.csv`
   );
 
   fs.writeFileSync(
@@ -236,6 +241,8 @@ async function main() {
   );
 
   console.log(`\nCSV written to ${outputFile}\n`);
+
+  console.log("🌈 Have a lovely day!\n");
 }
 
 main().catch((err) => console.error(err));
