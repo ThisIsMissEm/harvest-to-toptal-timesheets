@@ -11,8 +11,8 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "dotenv": "^8.2.0",
+    "dotenv": "^9.0.2",
     "harvest": "^2.2.6",
-    "prompts": "^2.4.0"
+    "prompts": "^2.4.1"
   }
 }
