@@ -301,8 +301,8 @@ async function main() {
         project_ids: projectIds,
         time: {
           summary_type: "detailed",
-          from: period.start,
-          to: period.end,
+          from: period.start + 1,
+          to: period.end + 1,
         },
       },
     });
